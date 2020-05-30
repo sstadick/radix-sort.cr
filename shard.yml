@@ -1,0 +1,9 @@
+name: radix-sort
+version: 0.1.0
+
+authors:
+  - Seth Stadick <sstadick@gmail.com>
+
+crystal: 0.34.0
+
+license: MIT
