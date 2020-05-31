@@ -26,6 +26,23 @@ module Radix::Sort
     end
   end
 
+  # Inplace count sort
+  def count_sort!(numbers : Array(RSable)) : Nil
+    num_buckets = numbers.max_by { |n| n.get_key }
+    buckets = Array(RSable).new(num_buckets, 0)
+
+    (0...numbers.size).each do |i|
+      buckets[numbers[i].get_key] += 1
+    end
+    k = 0
+    (0...num_buckets).each do |i|
+      (0...buckets[i]).each do |j|
+        numbers[k] = i
+        k += 1
+      end
+    end
+  end
+
   # 32 bit radix sort in two passes
   # tmp is of equal length and used for first padd
   def radix_sort!(nodes : Array(RSable), tmp : Array(RSable))
