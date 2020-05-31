@@ -7,7 +7,7 @@ module Radix::Sort
   MASK        = 0xffff
 
   abstract class RSable(T)
-    def get_key : T
+    def get_key : UInt64
     end
   end
 
@@ -26,56 +26,48 @@ module Radix::Sort
     end
   end
 
-  # Inplace count sort
-  def count_sort!(numbers : Array(RSable)) : Nil
-    num_buckets = numbers.max_by { |n| n.get_key }
-    buckets = Array(RSable).new(num_buckets, 0)
+  def radix_sort!(items : Array(RSable))
+    max_key = items.max_by { |x| x.get_key }.get_key
+    num_buckets = 10
+    buckets = Array(UInt32).new(10, 0)
+    positions = Array(UInt32).new(10, 0)
 
-    (0...numbers.size).each do |i|
-      buckets[numbers[i].get_key] += 1
-    end
-    k = 0
-    (0...num_buckets).each do |i|
-      (0...buckets[i]).each do |j|
-        numbers[k] = i
-        k += 1
-      end
-    end
-  end
+    exp = 1
+    while max_key // exp > 0
+      # Do a pass of countsort
+      buckets.fill(0)
+      positions.fill(0)
 
-  # 32 bit radix sort in two passes
-  # tmp is of equal length and used for first padd
-  def radix_sort!(nodes : Array(RSable), tmp : Array(RSable))
-    max_key = nodes.max_by { |n| n.get_key }
-    count = 0
-    shift = 0
-    radix_counts = Array(Int32).new(K, 0)
-    from = nodes
-    to = tmp
-    while count < 32 / R
-      radix_counts.fill(0) # fill with zeros
-      from.each do |node|
-        radix_counts[((node.get_key >> shift) & MASK)] += 1
+      # Find how many item's keys are in each bucket for this digit
+      items.each do |item|
+        index = (item.get_key // exp) % 10
+        buckets[index] += 1
       end
-      # make counts cumlative
-      (1...K).each do |i|
-        radix_counts[i] += radix_counts[i - 1]
+
+      # Find the number of elements less than or equal to i at each position
+      (1...num_buckets).each do |i|
+        buckets[i] += buckets[i - 1]
       end
-      # change counts to offsets
-      (0...K - 1).each do |i|
-        radix_counts[K - 1 - i] = radix_counts[K - 2 - i]
+
+      # copy buckets into positions so that buckets can be modfied
+      buckets.each_with_index do |count, i|
+        positions[i] = count
       end
-      radix_counts[0] = 0
-      from.each do |node|
-        radix = ((node.get_key >> shift) & MASK)
-        to[radix_counts[radix]] = node
-        radix_counts[radix] += 1
+
+      i = 0
+      while i < items.size
+        key = (items[i].get_key // exp) % 10
+        placed = (key == 0 || (positions[key - 1] <= i && i < positions[key]))
+        if placed
+          i += 1
+        else
+          tmp = items[i]
+          items[i] = items[buckets[key] - 1]
+          items[buckets[key] - 1] = tmp
+          buckets[key] -= 1
+        end
       end
-      count += 1
-      shift += R
-      swap_tmp = from
-      from = to
-      to = swap_tmp
+      exp *= 10
     end
   end
 end

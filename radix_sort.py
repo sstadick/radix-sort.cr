@@ -1,4 +1,7 @@
-"""Counting sort with a generic get keys function in place"""
+"""Counting sort  and radix sort with a generic get keys function in place.
+
+Note: This will only work with positive integers as it stands.
+"""
 from dataclasses import dataclass
 from typing import List
 
@@ -86,6 +89,7 @@ def radix_sort(items: List[Interval]) -> None:
         i = 0
         while i < len(items):
             key = (items[i].get_key() // exp) % 10
+            print(f"{key=}")
             placed = (key == 0 or (positions[key - 1] <= i and i < positions[key]))
             if placed:
                 i += 1
@@ -100,22 +104,24 @@ def radix_sort(items: List[Interval]) -> None:
 
 def main() -> None:
     items: List[Interval] = [
-        Interval(50, 100),
-        Interval(50, 60),
-        Interval(20, 70),
-        Interval(80, 200),
+        Interval(2, 100),
+        Interval(7, 60),
+        Interval(32, 70),
+        Interval(50, 200),
         Interval(1, 4),
+        Interval(70, 80),
     ]
     print(f"pre sort: {items=}")
     count_sort(items)
     print(f"post sort: {items=}")
 
     items2: List[Interval] = [
-        Interval(50, 100),
-        Interval(50, 60),
-        Interval(20, 70),
-        Interval(80, 200),
+        Interval(2, 100),
+        Interval(7, 60),
+        Interval(32, 70),
+        Interval(50, 200),
         Interval(1, 4),
+        Interval(70, 80),
     ]
     print(f"pre sort: {items2=}")
     radix_sort(items2)
